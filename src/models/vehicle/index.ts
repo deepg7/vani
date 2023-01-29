@@ -3,7 +3,6 @@ import { sequelize } from "../../config/db";
 
 interface VehicleAttributes {
   id: number;
-  pincode: number;
   model: string;
   fuelType: string;
   type: string;
@@ -22,7 +21,6 @@ class Vehicle
   implements VehicleAttributes
 {
   public id!: number;
-  public pincode!: number;
   public model!: string;
   public fuelType!: string;
   public type!: string;
@@ -52,10 +50,6 @@ Vehicle.init(
     },
     fuelType: {
       type: DataTypes.STRING,
-      allowNull: false,
-    },
-    pincode: {
-      type: DataTypes.INTEGER,
       allowNull: false,
     },
     color: {
