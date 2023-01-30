@@ -9,4 +9,8 @@ router.post("/", async (req: Request, res: Response) => {
   return res.status(201).send(vehicle);
 });
 
+router.get("/", async (req: Request, res: Response) => {
+  return res.status(200).send(await Vehicle.findAll());
+});
+
 export default router;

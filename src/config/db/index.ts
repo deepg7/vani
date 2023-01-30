@@ -9,16 +9,21 @@ import Booking from "../../models/booking";
 const connectToDB = async () => {
   try {
     await sequelize.authenticate();
+
+    //ASSOCIATIONS
     Station.hasMany(Vehicle, {
       foreignKey: "stationID",
     });
     Vehicle.belongsTo(Station);
+    User.belongsToMany(Vehicle, { through: Booking, uniqueKey: "id" });
+    Vehicle.belongsToMany(User, { through: Booking, uniqueKey: "id" });
 
-    User.belongsToMany(Vehicle, { through: Booking });
-    Vehicle.belongsToMany(User, { through: Booking });
+    //SYNCING ALL THE MODELS
     Station.sync({ alter: true });
     Vehicle.sync({ alter: true });
     User.sync({ alter: true });
+    Booking.sync({ alter: true });
+
     console.log("Connection has been established successfully.");
   } catch (error) {
     console.error("Unable to connect to the database:", error);

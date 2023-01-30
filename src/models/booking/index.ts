@@ -5,8 +5,8 @@ import Vehicle from "../vehicle";
 
 interface BookingAttributes {
   id: number;
-  userID: number;
-  vehicleID: number;
+  UserId: number;
+  VehicleId: number;
   status: string;
   createdAt?: Date;
   updatedAt?: Date;
@@ -20,8 +20,8 @@ class Booking
   implements BookingAttributes
 {
   public id!: number;
-  public userID!: number;
-  public vehicleID!: number;
+  public UserId!: number;
+  public VehicleId!: number;
   public status!: string;
 
   // timestamps!
@@ -37,8 +37,8 @@ Booking.init(
       autoIncrement: true,
       primaryKey: true,
     },
-    userID: {
-      type: DataTypes.STRING,
+    UserId: {
+      type: DataTypes.INTEGER,
       allowNull: false,
       references: {
         model: User,
@@ -49,7 +49,7 @@ Booking.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    vehicleID: {
+    VehicleId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
@@ -59,6 +59,24 @@ Booking.init(
     },
   },
   {
+    indexes: [
+      {
+        name: "vehicle_status",
+        fields: ["VehicleId", "status"],
+        where: {
+          status: "active",
+        },
+        unique: true,
+      },
+      {
+        name: "user_status",
+        fields: ["UserId", "status"],
+        where: {
+          status: "active",
+        },
+        unique: true,
+      },
+    ],
     timestamps: true,
     sequelize: sequelize,
     paranoid: true,

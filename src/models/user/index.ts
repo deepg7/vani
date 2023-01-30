@@ -1,5 +1,6 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import { sequelize } from "../../config/db";
+
 interface UserAttributes {
   id: number;
   name: string;
@@ -40,6 +41,9 @@ User.init(
     email: {
       type: DataTypes.STRING,
       allowNull: false,
+      validate: {
+        isEmail: true,
+      },
     },
     dob: {
       type: DataTypes.DATE,
@@ -48,6 +52,9 @@ User.init(
     phone: {
       type: DataTypes.STRING,
       allowNull: false,
+      validate: {
+        is: /\+91[0-9]{10}/,
+      },
     },
   },
   {

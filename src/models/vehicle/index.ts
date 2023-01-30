@@ -47,10 +47,12 @@ Vehicle.init(
     type: {
       type: DataTypes.STRING,
       allowNull: false,
+      //add enum
     },
     fuelType: {
       type: DataTypes.STRING,
       allowNull: false,
+      //add enum
     },
     color: {
       type: DataTypes.STRING,
@@ -59,6 +61,9 @@ Vehicle.init(
     number: {
       type: DataTypes.STRING,
       allowNull: false,
+      validate: {
+        is: /[A-Z]{2}[0-9]{2}[A-Z]{2}[0-9]{4}/,
+      },
     },
     stationID: {
       type: DataTypes.INTEGER,

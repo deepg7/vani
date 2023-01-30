@@ -12,7 +12,9 @@ app.use(cors());
 import stationRouter from "./routers/station";
 import vehicleRouter from "./routers/vehicle";
 import userRouter from "./routers/user";
+import bookingRouter from "./routers/booking";
 
+app.use("/booking", bookingRouter);
 app.use("/station", stationRouter);
 app.use("/vehicle", vehicleRouter);
 app.use("/user", userRouter);

@@ -1,6 +1,6 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import { sequelize } from "../../config/db";
-console.log(sequelize);
+
 interface StationAttributes {
   id: number;
   name: string;
@@ -58,6 +58,9 @@ Station.init(
     pincode: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      validate: {
+        is: /[0-9]{6}/,
+      },
     },
   },
   {
