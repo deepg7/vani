@@ -15,14 +15,24 @@ const connectToDB = async () => {
       foreignKey: "stationID",
     });
     Vehicle.belongsTo(Station);
-    User.belongsToMany(Vehicle, { through: Booking, uniqueKey: "id" });
-    Vehicle.belongsToMany(User, { through: Booking, uniqueKey: "id" });
+    User.belongsToMany(Vehicle, {
+      through: { model: Booking, unique: false },
+      uniqueKey: "id",
+      foreignKey: "UserId",
+    });
+    Vehicle.belongsToMany(User, {
+      through: { model: Booking, unique: false },
+      uniqueKey: "id",
+      foreignKey: "VehicleId",
+    });
+
+    // await sequelize.sync({ force: true });
 
     //SYNCING ALL THE MODELS
-    Station.sync({ alter: true });
-    Vehicle.sync({ alter: true });
-    User.sync({ alter: true });
-    Booking.sync({ alter: true });
+    await Station.sync({ alter: true });
+    await Vehicle.sync({ alter: true });
+    await User.sync({ alter: true });
+    await Booking.sync({ alter: true });
 
     console.log("Connection has been established successfully.");
   } catch (error) {
