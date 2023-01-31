@@ -16,7 +16,7 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
-//GET VEHICLE FOR A PARTICULAR STATION
+//GET AVAILABLE VEHICLES FOR A PARTICULAR STATION
 router.get("/:sid", async (req: Request, res: Response) => {
   try {
     const { sid } = req.params;
@@ -37,6 +37,18 @@ router.get("/:sid", async (req: Request, res: Response) => {
 router.get("/", async (req: Request, res: Response) => {
   try {
     return res.status(200).send(await Vehicle.findAll());
+  } catch (e) {
+    return res.send(e);
+  }
+});
+
+router.patch("/:id/:sid", async (req: Request, res: Response) => {
+  try {
+    const { id, sid } = req.params;
+    const vehicle = await Vehicle.update(
+      { stationID: Number(sid) },
+      { where: { id } }
+    );
   } catch (e) {
     return res.send(e);
   }

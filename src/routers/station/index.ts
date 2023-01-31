@@ -13,4 +13,26 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
+router.get("/", async (req: Request, res: Response) => {
+  try {
+    const stations = await Station.findAll();
+    return res.status(200).send(stations);
+  } catch (e) {
+    return res.send(e);
+  }
+});
+
+router.get("/:pincode", async (req: Request, res: Response) => {
+  try {
+    const stations = await Station.findAll({
+      where: {
+        pincode: req.params.pincode,
+      },
+    });
+    return res.status(200).send(stations);
+  } catch (e) {
+    return res.send(e);
+  }
+});
+
 export default router;

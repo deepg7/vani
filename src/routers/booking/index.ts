@@ -1,5 +1,5 @@
 import { Request, Response, Router } from "express";
-import Booking, { BookingInput } from "../../models/booking";
+import Booking from "../../models/booking";
 import User from "../../models/user";
 import Vehicle from "../../models/vehicle";
 
@@ -25,9 +25,6 @@ router.post("/:uid/:vid", async (req: Request, res: Response) => {
   }
 });
 
-//search with id and active
-//if not found then return error
-//if successful update vehicle station id to new stop
 //toDO ADD A TRANSACTION HERE
 router.patch("/:id/:sid", async (req: Request, res: Response) => {
   try {

@@ -6,6 +6,7 @@ import Station from "../../models/station";
 import User from "../../models/user";
 import Vehicle from "../../models/vehicle";
 import Booking from "../../models/booking";
+
 const connectToDB = async () => {
   try {
     await sequelize.authenticate();
