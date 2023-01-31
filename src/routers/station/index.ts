@@ -1,6 +1,7 @@
 import { Request, Response, Router } from "express";
 import errorHandler from "../../config/utils/errorhandler";
 import Station, { StationInput } from "../../models/station";
+import { checkRole, checkUser } from "../../config/firebase";
 
 const router = Router();
 
@@ -26,9 +27,8 @@ const router = Router();
  *             200:
  *                 description: A paginated list of videos
  */
-router.post("/", async (req: Request, res: Response) => {
+router.post("/", checkUser, checkRole, async (req: Request, res: Response) => {
   try {
-    //check user and role
     const payload = req.body.payload as StationInput;
     const station = await Station.create(payload);
     return res.status(201).send(station);

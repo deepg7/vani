@@ -1,5 +1,6 @@
 import { Request, Response, Router } from "express";
-import checkUser from "../../config/firebase";
+import { checkUser, checkRole } from "../../config/firebase";
+import { ADMIN } from "../../config/utils/constants";
 import errorHandler, {
   BadRequestError,
   NotFoundError,
@@ -73,5 +74,20 @@ router.get("/", checkUser, async (req: Request, res: Response) => {
     return errorHandler(e, req, res);
   }
 });
+
+router.patch(
+  "/:id",
+  checkUser,
+  checkRole,
+  async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const user = await User.update({ role: ADMIN }, { where: { id } });
+      return res.status(201).send(user);
+    } catch (e) {
+      errorHandler(e, req, res);
+    }
+  }
+);
 
 export default router;

@@ -2,8 +2,10 @@ import { Request, Response, Router } from "express";
 import { Op } from "sequelize";
 import Booking from "../../models/booking";
 import Vehicle, { VehicleInput } from "../../models/vehicle";
-import checkUser from "../../config/firebase";
-import errorHandler from "../../config/utils/errorhandler";
+import { checkUser, checkRole } from "../../config/firebase";
+import errorHandler, { ForbiddenError } from "../../config/utils/errorhandler";
+import User from "../../models/user";
+import { ACTIVE, ADMIN } from "../../config/utils/constants";
 const router = Router();
 
 /**
@@ -28,9 +30,8 @@ const router = Router();
  *             200:
  *                 description: A paginated list of videos
  */
-router.post("/", async (req: Request, res: Response) => {
+router.post("/", checkUser, checkRole, async (req: Request, res: Response) => {
   try {
-    //cehck user and role
     const payload = req.body.payload as VehicleInput;
     const vehicle = await Vehicle.create(payload);
     return res.status(201).send(vehicle);
@@ -61,16 +62,17 @@ router.post("/", async (req: Request, res: Response) => {
  *             200:
  *                 description: A paginated list of videos
  */
-router.get("/:sid", async (req: Request, res: Response) => {
+router.get("/:sid", checkUser, async (req: Request, res: Response) => {
   try {
     let { sid } = req.params;
     const vehicles = await Vehicle.findAll({
       where: { stationID: sid == "0" ? null : sid },
     });
-    // return res.send(vehicles);
     let avlblV: Vehicle[] = [];
-    //if 0 check user role
     if (sid == "0") {
+      const { phone } = req;
+      const user = await User.findOne({ where: { phone } });
+      if (!user || user.role !== ADMIN) throw new ForbiddenError();
       avlblV = vehicles;
     } else {
       const vids = vehicles.map((v) => v.id);
@@ -109,7 +111,7 @@ router.get("/:sid", async (req: Request, res: Response) => {
  *             200:
  *                 description: A paginated list of videos
  */
-router.get("/", checkUser, async (req: Request, res: Response) => {
+router.get("/", checkUser, checkRole, async (req: Request, res: Response) => {
   try {
     return res.status(200).send(await Vehicle.findAll());
   } catch (e) {
@@ -139,17 +141,26 @@ router.get("/", checkUser, async (req: Request, res: Response) => {
  *             200:
  *                 description: A paginated list of videos
  */
-router.patch("/:id/:sid", async (req: Request, res: Response) => {
-  try {
-    //check null/id/not booked currently
-    const { id, sid } = req.params;
-    const vehicle = await Vehicle.update(
-      { stationID: Number(sid) },
-      { where: { id } }
-    );
-  } catch (e) {
-    return errorHandler(e, req, res);
+router.patch(
+  "/:id/:sid",
+  checkUser,
+  checkRole,
+  async (req: Request, res: Response) => {
+    try {
+      const { id, sid } = req.params;
+      const booking = await Booking.findOne({
+        where: { status: ACTIVE, VehicleId: id },
+      });
+      if (booking) throw new ForbiddenError();
+      const vehicle = await Vehicle.update(
+        { stationID: Number(sid) == 0 ? null : Number(sid) },
+        { where: { id } }
+      );
+      return res.status(200).send(vehicle);
+    } catch (e) {
+      return errorHandler(e, req, res);
+    }
   }
-});
+);
 
 export default router;

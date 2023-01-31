@@ -1,6 +1,12 @@
 import admin, { ServiceAccount } from "firebase-admin";
 import { Request, Response, NextFunction } from "express";
-import errorHandler, { AuthenticationError } from "../utils/errorhandler";
+import errorHandler, {
+  AuthenticationError,
+  ForbiddenError,
+  NotFoundError,
+} from "../utils/errorhandler";
+import User from "../../models/user";
+import { ADMIN } from "../utils/constants";
 const env = process.env;
 
 var serviceAccount: ServiceAccount = {
@@ -35,4 +41,17 @@ const checkUser = (req: Request, res: Response, next: NextFunction) => {
       errorHandler(new AuthenticationError(), req, res);
     });
 };
-export default checkUser;
+
+const checkRole = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { phone } = req;
+    const user = await User.findOne({ where: { phone } });
+    if (!user) throw new NotFoundError();
+    if (user.role !== ADMIN) throw new ForbiddenError();
+    console.log(user.role);
+    next();
+  } catch (e) {
+    errorHandler(e, req, res);
+  }
+};
+export { checkUser, checkRole };
