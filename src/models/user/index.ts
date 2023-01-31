@@ -57,6 +57,7 @@ User.init(
       validate: {
         is: /\+91[0-9]{10}/,
       },
+      unique: true,
     },
     role: {
       type: DataTypes.STRING,
