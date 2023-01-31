@@ -6,6 +6,7 @@ import Station from "../../models/station";
 import User from "../../models/user";
 import Vehicle from "../../models/vehicle";
 import Booking from "../../models/booking";
+import { SEED_USER } from "../utils/constants";
 
 const connectToDB = async () => {
   try {
@@ -35,10 +36,24 @@ const connectToDB = async () => {
     await User.sync({ alter: true });
     await Booking.sync({ alter: true });
 
+    await seed();
     console.log("Connection has been established successfully.");
   } catch (error) {
     console.error("Unable to connect to the database:", error);
   }
 };
 
+const seed = async () => {
+  try {
+    const searchedUser = await User.findOne({
+      where: { phone: SEED_USER.phone },
+    });
+    if (!searchedUser) {
+      const user = await User.create(SEED_USER);
+      console.log(user);
+    }
+  } catch (e) {
+    console.log(e);
+  }
+};
 export default connectToDB;
