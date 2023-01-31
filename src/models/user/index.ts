@@ -7,6 +7,7 @@ interface UserAttributes {
   phone: string;
   email: string;
   dob: Date;
+  role: string;
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date;
@@ -20,6 +21,7 @@ class User extends Model<UserAttributes, UserInput> implements UserAttributes {
   public phone!: string;
   public email!: string;
   public dob!: Date;
+  public role!: string;
 
   // timestamps!
   public readonly createdAt!: Date;
@@ -55,6 +57,10 @@ User.init(
       validate: {
         is: /\+91[0-9]{10}/,
       },
+    },
+    role: {
+      type: DataTypes.STRING,
+      allowNull: false,
     },
   },
   {

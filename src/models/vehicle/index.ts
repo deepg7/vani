@@ -8,12 +8,13 @@ interface VehicleAttributes {
   type: string;
   color: string;
   number: string;
-  stationID: number;
+  stationID?: number | null;
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date;
 }
-export interface VehicleInput extends Optional<VehicleAttributes, "id"> {}
+export interface VehicleInput
+  extends Optional<VehicleAttributes, "id" | "stationID"> {}
 export interface VehicleOutput extends Required<VehicleAttributes> {}
 
 class Vehicle
@@ -26,7 +27,7 @@ class Vehicle
   public type!: string;
   public color!: string;
   public number!: string;
-  public stationID!: number;
+  public stationID?: number | null;
   // timestamps!
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -67,7 +68,7 @@ Vehicle.init(
     },
     stationID: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
     },
   },
   {

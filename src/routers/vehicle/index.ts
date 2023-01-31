@@ -1,4 +1,4 @@
-import { Request, Response, Router } from "express";
+import e, { Request, Response, Router } from "express";
 import { Op } from "sequelize";
 import Booking from "../../models/booking";
 import Vehicle, { VehicleInput } from "../../models/vehicle";
@@ -19,15 +19,23 @@ router.post("/", async (req: Request, res: Response) => {
 //GET AVAILABLE VEHICLES FOR A PARTICULAR STATION
 router.get("/:sid", async (req: Request, res: Response) => {
   try {
-    const { sid } = req.params;
-    const vehicles = await Vehicle.findAll({ where: { stationID: sid } });
-    // return res.send(vehicles);
-    const vids = vehicles.map((v) => v.id);
-    const bookings = await Booking.findAll({
-      where: { VehicleId: { [Op.in]: vids }, status: "active" },
+    let { sid } = req.params;
+    const vehicles = await Vehicle.findAll({
+      where: { stationID: sid == "0" ? null : sid },
     });
-    const bookedVIDs = bookings.map((b) => b.VehicleId);
-    const avlblV = vehicles.filter((v) => !bookedVIDs.includes(v.id));
+    // return res.send(vehicles);
+    let avlblV: Vehicle[] = [];
+    if (sid == "0") {
+      avlblV = vehicles;
+    } else {
+      const vids = vehicles.map((v) => v.id);
+      const bookings = await Booking.findAll({
+        where: { VehicleId: { [Op.in]: vids }, status: "active" },
+      });
+      const bookedVIDs = bookings.map((b) => b.VehicleId);
+      avlblV = vehicles.filter((v) => !bookedVIDs.includes(v.id));
+    }
+
     return res.send(avlblV);
   } catch (e) {
     return res.send(e);
