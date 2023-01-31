@@ -1,21 +1,22 @@
 import { NextFunction, Request, Response } from "express";
 
-const errorHandler = (
+export const errorHandler = (
   e: any,
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  return res.status(e.status || 400).send(e.message || "BadRequest");
+  return res.status(e.status || e.statusCode || 400).send(e);
 };
 
-// class NotFoundError extends Error {
-//   constructor() {
-//     super();
-//     this.statusCode = 404;
-//     this.message = "Not Found";
-//   }
-// }
+class NotFoundError extends Error {
+  constructor() {
+    super();
+
+    this.message = "Not Found";
+  }
+  statusCode = 404;
+}
 
 class AuthenticationError extends Error {
   constructor() {
@@ -25,108 +26,21 @@ class AuthenticationError extends Error {
   statuscode = 401;
 }
 
-export { AuthenticationError };
+class ForbiddenError extends Error {
+  constructor() {
+    super();
+    this.message = "Not Allowed";
+  }
+  statuscode = 403;
+}
 
-// class BadRequestError extends Error {
-//   constructor() {
-//     super();
-//     this.statusCode = 400;
-//     this.message = "Bad Request";
-//   }
-// }
+class BadRequestError extends Error {
+  constructor() {
+    super();
+    this.message = "Bad Request";
+  }
+  statusCode = 400;
+}
 
-// class TeamFullError extends Error {
-//   constructor() {
-//     super();
-//     this.statusCode = 403;
-//     this.message = "Team is Full";
-//   }
-// }
-
-// class DuplicateTeamEntryError extends Error {
-//   constructor() {
-//     super();
-//     this.statusCode = 403;
-//     this.message = "Duplicate Entry in Team is not allowed";
-//   }
-// }
-
-// class EmailUnauthorizedError extends Error {
-//   constructor() {
-//     super();
-//     this.statusCode = 401;
-//     this.message = "Please Verify Your Email Address";
-//   }
-// }
-
-// class DuplicateTeamHackError extends Error {
-//   constructor() {
-//     super();
-//     this.statusCode = 403;
-//     this.message = "Already Going to the same Hack.";
-//   }
-// }
-
-// class SchemaValidationError extends Error {
-//   constructor() {
-//     super();
-//     this.statusCode = 417;
-//     this.message = "Please Specify All required fields";
-//   }
-// }
-
-// class DuplicateEntryError extends Error {
-//   constructor() {
-//     super();
-//     this.statusCode = 409;
-//     this.message = "Indexing error";
-//   }
-// }
-
-// class InvalidUpdatesError extends Error {
-//   constructor() {
-//     super();
-//     this.statusCode = 403;
-//     this.message = "Invalid Updates";
-//   }
-// }
-
-// class ClaimNotSetError extends Error {
-//   constructor() {
-//     super();
-//     this.statusCode = 418;
-//     this.message = "Claim Not Set";
-//   }
-// }
-
-// class LoginNotAllowedError extends Error {
-//   constructor() {
-//     super();
-//     this.statusCode = 403;
-//     this.message = "Login Not Allowed";
-//   }
-// }
-
-// class DuplicateTeamNameError extends Error {
-//   constructor() {
-//     super();
-//     this.statusCode = 418;
-//     this.message = "Duplicate name not allowed";
-//   }
-// }
-
-// class MinMaxError extends Error {
-//   constructor() {
-//     super();
-//     this.statusCode = 406;
-//     this.message = "Min team size cannot be greater than max team size";
-//   }
-// }
-
-// class DateError extends Error {
-//   constructor() {
-//     super();
-//     statusCode = 407;
-//     this.message = "Start date cannot be after end date";
-//   }
-// }
+export { BadRequestError, AuthenticationError, ForbiddenError, NotFoundError };
+export default errorHandler;

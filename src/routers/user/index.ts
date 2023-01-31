@@ -4,6 +4,28 @@ import User, { UserInput } from "../../models/user";
 
 const router = Router();
 
+/**
+ * @swagger
+ * /booking:
+ *     get:
+ *         summary: Retrieve all the videos in a paginated response.[made for PART 2 of BASIC REQUIREMENTS]
+ *         parameters:
+ *             - in: query
+ *               name: limit
+ *               type: integer
+ *               description: max number of tweets to return. Default is 5.
+ *             - in: query
+ *               name: offset
+ *               type: integer
+ *               description: number of tweets to offset the results by. Default is 0.
+ *             - in: query
+ *               name: pageNo
+ *               type: integer
+ *               description: can be used with limit to get a paginated response
+ *         responses:
+ *             200:
+ *                 description: A paginated list of videos
+ */
 router.post("/", checkUser, async (req: Request, res: Response) => {
   try {
     const payload = req.body.payload as UserInput;
@@ -15,6 +37,28 @@ router.post("/", checkUser, async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * @swagger
+ * /booking:
+ *     get:
+ *         summary: Retrieve all the videos in a paginated response.[made for PART 2 of BASIC REQUIREMENTS]
+ *         parameters:
+ *             - in: query
+ *               name: limit
+ *               type: integer
+ *               description: max number of tweets to return. Default is 5.
+ *             - in: query
+ *               name: offset
+ *               type: integer
+ *               description: number of tweets to offset the results by. Default is 0.
+ *             - in: query
+ *               name: pageNo
+ *               type: integer
+ *               description: can be used with limit to get a paginated response
+ *         responses:
+ *             200:
+ *                 description: A paginated list of videos
+ */
 router.get("/", checkUser, async (req: Request, res: Response) => {
   try {
     const { phone } = req;

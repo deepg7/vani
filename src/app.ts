@@ -1,8 +1,8 @@
 import express, { Application, Request, Response } from "express";
 import * as dotenv from "dotenv";
 import cors from "cors";
-// import swaggerJsDoc from "swagger-jsdoc";
-// import * as swaggerUi from "swagger-ui-express";
+import swaggerJsDoc from "swagger-jsdoc";
+import * as swaggerUi from "swagger-ui-express";
 
 dotenv.config();
 
@@ -28,21 +28,21 @@ app.get("/", () => {
     console.log(e.statuscode + e.message);
   }
 });
-// const swaggerOptions = {
-//   swaggerDefinition: {
-//     info: {
-//       version: "1.0.0",
-//       title: "Vani API",
-//       description: "Vani API Visual Information",
-//     },
-//   },
-//   apis: ["./routers/**/*.ts"],
-// };
-// const swaggerDocs = swaggerJsDoc(swaggerOptions);
-// app.use(
-//   "/docs",
-//   swaggerUi.serve,
-//   swaggerUi.setup(swaggerDocs, { explorer: true })
-// );
+const swaggerOptions = {
+  swaggerDefinition: {
+    info: {
+      version: "1.0.0",
+      title: "Vani API",
+      description: "Vani API Visual Information",
+    },
+  },
+  apis: ["./src/routers/vehicle/index.ts"],
+};
+const swaggerDocs = swaggerJsDoc(swaggerOptions);
+app.use(
+  "/docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerDocs, { explorer: true })
+);
 
 export default app;
