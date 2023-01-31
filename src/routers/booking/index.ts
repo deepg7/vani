@@ -1,13 +1,12 @@
 import { Request, Response, Router } from "express";
 import checkUser from "../../config/firebase";
+import { ACTIVE, INACTIVE } from "../../config/utils/constants";
+import errorHandler, { NotFoundError } from "../../config/utils/errorhandler";
 import Booking from "../../models/booking";
 import User from "../../models/user";
 import Vehicle from "../../models/vehicle";
 
 const router = Router();
-
-const ACTIVE = "active";
-const INACTIVE = "inactive";
 
 /**
  * @swagger
@@ -38,7 +37,7 @@ router.post("/:uid/:vid", async (req: Request, res: Response) => {
     const { uid, vid } = req.params;
     const user = await User.findByPk(uid);
     const vehicle = await Vehicle.findByPk(vid);
-    if (!vehicle || !user) throw new Error("err");
+    if (!vehicle || !user) throw new NotFoundError();
     const booking = await Booking.create({
       VehicleId: Number(vid),
       UserId: Number(uid),
@@ -46,7 +45,7 @@ router.post("/:uid/:vid", async (req: Request, res: Response) => {
     });
     return res.status(201).send(booking);
   } catch (e) {
-    return res.send(e);
+    return errorHandler(e, req, res);
   }
 });
 
@@ -78,20 +77,20 @@ router.patch("/:id/:sid", async (req: Request, res: Response) => {
     // scanned and requested by user
     //add transaction
     const { id, sid } = req.params;
-    if (!id || !sid) throw new Error("empty");
+    if (!id || !sid) throw new NotFoundError();
     const booking = await Booking.update(
       { status: INACTIVE },
       { where: { id } }
     );
     const vehicleID = (await Booking.findByPk(id))?.VehicleId;
-    if (!vehicleID) throw new Error("err");
+    if (!vehicleID) throw new NotFoundError();
     const vehicle = await Vehicle.update(
       { stationID: Number(sid) },
       { where: { id: vehicleID } }
     );
     return res.status(201).send(booking);
   } catch (e) {
-    return res.send(e);
+    return errorHandler(e, req, res);
   }
 });
 
@@ -123,7 +122,7 @@ router.get("/", async (req: Request, res: Response) => {
     //joins
     return res.status(200).send(await Booking.findAll());
   } catch (e) {
-    return res.send(e);
+    return errorHandler(e, req, res);
   }
 });
 
@@ -133,7 +132,7 @@ router.get("/user", checkUser, async (req: Request, res: Response) => {
     //get id from phone
     //get bookings from id
   } catch (e) {
-    return res.send(e);
+    return errorHandler(e, req, res);
   }
 });
 

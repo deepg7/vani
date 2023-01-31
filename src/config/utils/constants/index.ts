@@ -1,2 +1,2 @@
-const ACTIVE = "active";
-const INACTIVE = "inactive";
+export const ACTIVE = "active";
+export const INACTIVE = "inactive";

@@ -1,11 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 
-export const errorHandler = (
-  e: any,
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const errorHandler = (e: any, req: Request, res: Response) => {
   return res.status(e.status || e.statusCode || 400).send(e);
 };
 
@@ -23,7 +18,7 @@ class AuthenticationError extends Error {
     super();
     this.message = "Not Authenticated";
   }
-  statuscode = 401;
+  statusCode = 401;
 }
 
 class ForbiddenError extends Error {
@@ -31,7 +26,7 @@ class ForbiddenError extends Error {
     super();
     this.message = "Not Allowed";
   }
-  statuscode = 403;
+  statusCode = 403;
 }
 
 class BadRequestError extends Error {

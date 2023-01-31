@@ -1,8 +1,9 @@
-import e, { Request, Response, Router } from "express";
+import { Request, Response, Router } from "express";
 import { Op } from "sequelize";
 import Booking from "../../models/booking";
 import Vehicle, { VehicleInput } from "../../models/vehicle";
-
+import checkUser from "../../config/firebase";
+import errorHandler from "../../config/utils/errorhandler";
 const router = Router();
 
 /**
@@ -34,7 +35,7 @@ router.post("/", async (req: Request, res: Response) => {
     const vehicle = await Vehicle.create(payload);
     return res.status(201).send(vehicle);
   } catch (e) {
-    return res.send(e);
+    return errorHandler(e, req, res);
   }
 });
 
@@ -82,11 +83,9 @@ router.get("/:sid", async (req: Request, res: Response) => {
 
     return res.send(avlblV);
   } catch (e) {
-    return res.send(e);
+    return errorHandler(e, req, res);
   }
 });
-
-import checkUser from "../../config/firebase";
 
 /**
  * @swagger
@@ -114,7 +113,7 @@ router.get("/", checkUser, async (req: Request, res: Response) => {
   try {
     return res.status(200).send(await Vehicle.findAll());
   } catch (e) {
-    return res.send(e);
+    return errorHandler(e, req, res);
   }
 });
 
@@ -149,7 +148,7 @@ router.patch("/:id/:sid", async (req: Request, res: Response) => {
       { where: { id } }
     );
   } catch (e) {
-    return res.send(e);
+    return errorHandler(e, req, res);
   }
 });
 

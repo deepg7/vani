@@ -1,5 +1,6 @@
 import admin, { ServiceAccount } from "firebase-admin";
 import { Request, Response, NextFunction } from "express";
+import errorHandler, { AuthenticationError } from "../utils/errorhandler";
 const env = process.env;
 
 var serviceAccount: ServiceAccount = {
@@ -17,7 +18,7 @@ const checkUser = (req: Request, res: Response, next: NextFunction) => {
     !req.header("Authorization") ||
     req.header("Authorization") == undefined
   ) {
-    throw new Error("chal");
+    throw new AuthenticationError();
   }
   const idToken = req.header("Authorization")!.replace("Bearer ", "");
   admin
@@ -25,14 +26,13 @@ const checkUser = (req: Request, res: Response, next: NextFunction) => {
     .verifyIdToken(idToken)
     .then((user) => {
       const uid = user.uid;
-      if (!user.phone_number) throw new Error("ee");
+      if (!user.phone_number) throw new AuthenticationError();
       req.phone = user.phone_number;
-      console.log(user);
       next();
     })
     .catch((error) => {
       console.log(error);
-      //   errorHandler(new AuthenticationError(), req, res);
+      errorHandler(new AuthenticationError(), req, res);
     });
 };
 export default checkUser;

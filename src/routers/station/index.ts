@@ -1,4 +1,5 @@
 import { Request, Response, Router } from "express";
+import errorHandler from "../../config/utils/errorhandler";
 import Station, { StationInput } from "../../models/station";
 
 const router = Router();
@@ -32,7 +33,7 @@ router.post("/", async (req: Request, res: Response) => {
     const station = await Station.create(payload);
     return res.status(201).send(station);
   } catch (e) {
-    return res.send(e);
+    return errorHandler(e, req, res);
   }
 });
 
@@ -63,7 +64,7 @@ router.get("/", async (req: Request, res: Response) => {
     const stations = await Station.findAll();
     return res.status(200).send(stations);
   } catch (e) {
-    return res.send(e);
+    return errorHandler(e, req, res);
   }
 });
 
@@ -99,7 +100,7 @@ router.get("/:pincode", async (req: Request, res: Response) => {
     });
     return res.status(200).send(stations);
   } catch (e) {
-    return res.send(e);
+    return errorHandler(e, req, res);
   }
 });
 
