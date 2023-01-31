@@ -42,7 +42,8 @@ router.get("/:sid", async (req: Request, res: Response) => {
   }
 });
 
-router.get("/", async (req: Request, res: Response) => {
+import checkUser from "../../config/firebase";
+router.get("/", checkUser, async (req: Request, res: Response) => {
   try {
     return res.status(200).send(await Vehicle.findAll());
   } catch (e) {

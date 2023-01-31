@@ -15,12 +15,19 @@ import stationRouter from "./routers/station";
 import vehicleRouter from "./routers/vehicle";
 import userRouter from "./routers/user";
 import bookingRouter from "./routers/booking";
+import { AuthenticationError } from "./config/utils/errorhandler";
 
 app.use("/booking", bookingRouter);
 app.use("/station", stationRouter);
 app.use("/vehicle", vehicleRouter);
 app.use("/user", userRouter);
-
+app.get("/", () => {
+  try {
+    throw new AuthenticationError();
+  } catch (e: any) {
+    console.log(e.statuscode + e.message);
+  }
+});
 // const swaggerOptions = {
 //   swaggerDefinition: {
 //     info: {
