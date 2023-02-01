@@ -1,12 +1,12 @@
+import { NextFunction, Request, Response } from "express";
 import admin, { ServiceAccount } from "firebase-admin";
-import { Request, Response, NextFunction } from "express";
+import User from "../../models/user";
+import { ADMIN } from "../utils/constants";
 import errorHandler, {
   AuthenticationError,
   ForbiddenError,
   NotFoundError,
 } from "../utils/errorhandler";
-import User from "../../models/user";
-import { ADMIN } from "../utils/constants";
 const env = process.env;
 
 var serviceAccount: ServiceAccount = {
@@ -20,7 +20,6 @@ admin.initializeApp({
 });
 
 const checkUser = (req: Request, res: Response, next: NextFunction) => {
-  console.log("hi");
   if (
     !req.header("Authorization") ||
     req.header("Authorization") == undefined
@@ -33,7 +32,6 @@ const checkUser = (req: Request, res: Response, next: NextFunction) => {
     .auth()
     .verifyIdToken(idToken)
     .then((user) => {
-      const uid = user.uid;
       if (!user.phone_number) throw new AuthenticationError();
       req.phone = user.phone_number;
       console.log(req.phone);
