@@ -7,25 +7,17 @@ const router = Router();
 
 /**
  * @swagger
- * /booking:
- *     get:
- *         summary: Retrieve all the videos in a paginated response.[made for PART 2 of BASIC REQUIREMENTS]
+ * /station:
+ *     post:
+ *         summary: Create a station. Only for admins.
  *         parameters:
- *             - in: query
- *               name: limit
- *               type: integer
- *               description: max number of tweets to return. Default is 5.
- *             - in: query
- *               name: offset
- *               type: integer
- *               description: number of tweets to offset the results by. Default is 0.
- *             - in: query
- *               name: pageNo
- *               type: integer
- *               description: can be used with limit to get a paginated response
+ *             - in: header
+ *               name: Authorization
+ *               type: string
+ *               description: Bearer + firebase access token
  *         responses:
  *             200:
- *                 description: A paginated list of videos
+ *                 description: A station is created.
  */
 router.post("/", checkUser, checkRole, async (req: Request, res: Response) => {
   try {
@@ -39,27 +31,19 @@ router.post("/", checkUser, checkRole, async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /booking:
+ * /station:
  *     get:
- *         summary: Retrieve all the videos in a paginated response.[made for PART 2 of BASIC REQUIREMENTS]
+ *         summary: Get all stations.
  *         parameters:
- *             - in: query
- *               name: limit
- *               type: integer
- *               description: max number of tweets to return. Default is 5.
- *             - in: query
- *               name: offset
- *               type: integer
- *               description: number of tweets to offset the results by. Default is 0.
- *             - in: query
- *               name: pageNo
- *               type: integer
- *               description: can be used with limit to get a paginated response
+ *             - in: header
+ *               name: Authorization
+ *               type: string
+ *               description: Bearer + firebase Access token
  *         responses:
  *             200:
- *                 description: A paginated list of videos
+ *                 description: A list of stations
  */
-router.get("/", async (req: Request, res: Response) => {
+router.get("/", checkUser, async (req: Request, res: Response) => {
   try {
     const stations = await Station.findAll();
     return res.status(200).send(stations);
@@ -70,27 +54,23 @@ router.get("/", async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /booking:
+ * /station/{pincode}:
  *     get:
- *         summary: Retrieve all the videos in a paginated response.[made for PART 2 of BASIC REQUIREMENTS]
+ *         summary: Retrieve all the stations of a particular pincode.
  *         parameters:
- *             - in: query
- *               name: limit
+ *             - in: header
+ *               name: Authorization
+ *               type: string
+ *               description: Bearer + firebase Access token
+ *             - in: path
+ *               name: pincode
  *               type: integer
- *               description: max number of tweets to return. Default is 5.
- *             - in: query
- *               name: offset
- *               type: integer
- *               description: number of tweets to offset the results by. Default is 0.
- *             - in: query
- *               name: pageNo
- *               type: integer
- *               description: can be used with limit to get a paginated response
+ *               description: valid 6 digit pincode
  *         responses:
  *             200:
- *                 description: A paginated list of videos
+ *                 description: A list of stations having given pincode.
  */
-router.get("/:pincode", async (req: Request, res: Response) => {
+router.get("/:pincode", checkUser, async (req: Request, res: Response) => {
   try {
     const { pincode } = req.params;
     const stations = await Station.findAll({

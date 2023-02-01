@@ -6,29 +6,22 @@ import { checkUser, checkRole } from "../../config/firebase";
 import errorHandler, { ForbiddenError } from "../../config/utils/errorhandler";
 import User from "../../models/user";
 import { ACTIVE, ADMIN } from "../../config/utils/constants";
+import Station from "../../models/station";
 const router = Router();
 
 /**
  * @swagger
  * /vehicle:
  *     post:
- *         summary: Retrieve all the videos in a paginated response.[made for PART 2 of BASIC REQUIREMENTS]
+ *         summary:
  *         parameters:
- *             - in: query
- *               name: limit
- *               type: integer
- *               description: max number of tweets to return. Default is 5.
- *             - in: query
- *               name: offset
- *               type: integer
- *               description: number of tweets to offset the results by. Default is 0.
- *             - in: query
- *               name: pageNo
- *               type: integer
- *               description: can be used with limit to get a paginated response
+ *             - in: header
+ *               name: Authorization
+ *               type: string
+ *               description: Bearer + firebase access token
  *         responses:
  *             200:
- *                 description: A paginated list of videos
+ *                 description: Returns created vehicle
  */
 router.post("/", checkUser, checkRole, async (req: Request, res: Response) => {
   try {
@@ -42,32 +35,30 @@ router.post("/", checkUser, checkRole, async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /vehicle:
+ * /vehicle/{sid}:
  *     get:
- *         summary: Retrieve all the videos in a paginated response.[made for PART 2 of BASIC REQUIREMENTS]
+ *         summary: Get all available vehicles at a particular station
  *         parameters:
- *             - in: query
- *               name: limit
- *               type: integer
- *               description: max number of tweets to return. Default is 5.
- *             - in: query
- *               name: offset
- *               type: integer
- *               description: number of tweets to offset the results by. Default is 0.
- *             - in: query
- *               name: pageNo
- *               type: integer
- *               description: can be used with limit to get a paginated response
+ *             - in: header
+ *               name: Authorization
+ *               type: string
+ *               description: Bearer + firebase Access token
+ *             - in: path
+ *               name: sid
+ *               type: number
+ *               description: station id for which vehicles are to be fetched, enter 0 for vehicles with no station assigned.
  *         responses:
  *             200:
- *                 description: A paginated list of videos
+ *                 description: A list of vehicles available at the given station
  */
 router.get("/:sid", checkUser, async (req: Request, res: Response) => {
   try {
     let { sid } = req.params;
     const vehicles = await Vehicle.findAll({
-      where: { stationID: sid == "0" ? null : sid },
+      where: { StationId: sid == "0" ? null : sid },
+      include: Station,
     });
+    console.log(vehicles);
     let avlblV: Vehicle[] = [];
     if (sid == "0") {
       const { phone } = req;
@@ -93,27 +84,26 @@ router.get("/:sid", checkUser, async (req: Request, res: Response) => {
  * @swagger
  * /vehicle/all:
  *     get:
- *         summary: Retrieve all the videos in a paginated response.[made for PART 2 of BASIC REQUIREMENTS]
+ *         summary: Get all available vehicles. Used for "assign vehicle to station" functionality. only for admins.
  *         parameters:
- *             - in: query
- *               name: limit
- *               type: integer
- *               description: max number of tweets to return. Default is 5.
- *             - in: query
- *               name: offset
- *               type: integer
- *               description: number of tweets to offset the results by. Default is 0.
- *             - in: query
- *               name: pageNo
- *               type: integer
- *               description: can be used with limit to get a paginated response
+ *            - in: header
+ *               name: Authorization
+ *               type: string
+ *               description: Bearer + firebase Access token
  *         responses:
  *             200:
- *                 description: A paginated list of videos
+ *                 description: Get all available vehicles across all stations including those with stationId = 0.
  */
 router.get("/", checkUser, checkRole, async (req: Request, res: Response) => {
   try {
-    return res.status(200).send(await Vehicle.findAll());
+    const vehicles = await Vehicle.findAll();
+    const bookings = await Booking.findAll({ where: { status: ACTIVE } });
+    const vids = vehicles.map((v) => v.id);
+    const bookedVids = bookings.map((b) => b.VehicleId);
+    const availableVehicles = vehicles.filter(
+      (v) => !bookedVids.includes(v.id)
+    );
+    return res.status(200).send(availableVehicles);
   } catch (e) {
     return errorHandler(e, req, res);
   }
@@ -121,25 +111,21 @@ router.get("/", checkUser, checkRole, async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /vehicle:
+ * /vehicle/{id}/{sid}:
  *     patch:
- *         summary: Retrieve all the videos in a paginated response.[made for PART 2 of BASIC REQUIREMENTS]
- *         parameters:
- *             - in: query
- *               name: limit
+ *         summary:
+ *         parameters: Update station id of a vehicle. Only for admins.
+ *             - in: path
+ *               name: id
  *               type: integer
- *               description: max number of tweets to return. Default is 5.
- *             - in: query
- *               name: offset
+ *               description: Id of vehicle whose station has to be changed.
+ *             - in: path
+ *               name: sid
  *               type: integer
- *               description: number of tweets to offset the results by. Default is 0.
- *             - in: query
- *               name: pageNo
- *               type: integer
- *               description: can be used with limit to get a paginated response
+ *               description: Id of station where this vehicle must be assigned.
  *         responses:
  *             200:
- *                 description: A paginated list of videos
+ *                 description: Station id of vehicle updated successfully if data[0]=1, if data[0]=0, vehicle not found.
  */
 router.patch(
   "/:id/:sid",
@@ -153,7 +139,7 @@ router.patch(
       });
       if (booking) throw new ForbiddenError();
       const vehicle = await Vehicle.update(
-        { stationID: Number(sid) == 0 ? null : Number(sid) },
+        { StationId: Number(sid) == 0 ? null : Number(sid) },
         { where: { id } }
       );
       return res.status(200).send(vehicle);

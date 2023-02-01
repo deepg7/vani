@@ -20,6 +20,7 @@ admin.initializeApp({
 });
 
 const checkUser = (req: Request, res: Response, next: NextFunction) => {
+  console.log("hi");
   if (
     !req.header("Authorization") ||
     req.header("Authorization") == undefined
@@ -27,6 +28,7 @@ const checkUser = (req: Request, res: Response, next: NextFunction) => {
     throw new AuthenticationError();
   }
   const idToken = req.header("Authorization")!.replace("Bearer ", "");
+  console.log(idToken);
   admin
     .auth()
     .verifyIdToken(idToken)
@@ -34,6 +36,7 @@ const checkUser = (req: Request, res: Response, next: NextFunction) => {
       const uid = user.uid;
       if (!user.phone_number) throw new AuthenticationError();
       req.phone = user.phone_number;
+      console.log(req.phone);
       next();
     })
     .catch((error) => {

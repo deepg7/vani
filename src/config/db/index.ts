@@ -14,21 +14,19 @@ const connectToDB = async () => {
 
     //ASSOCIATIONS
     Station.hasMany(Vehicle, {
-      foreignKey: "stationID",
+      foreignKey: "StationId",
     });
     Vehicle.belongsTo(Station);
-    User.belongsToMany(Vehicle, {
-      through: { model: Booking, unique: false },
-      uniqueKey: "id",
-      foreignKey: "UserId",
-    });
-    Vehicle.belongsToMany(User, {
-      through: { model: Booking, unique: false },
-      uniqueKey: "id",
-      foreignKey: "VehicleId",
-    });
 
-    // await sequelize.sync({ force: true });
+    Booking.belongsTo(User, {
+      foreignKey: "UserId",
+      as: "user",
+    });
+    Booking.belongsTo(Vehicle, {
+      foreignKey: "VehicleId",
+      as: "vehicle",
+    });
+    await sequelize.sync({ alter: true });
 
     //SYNCING ALL THE MODELS
     await Station.sync({ alter: true });
@@ -50,7 +48,7 @@ const seed = async () => {
     });
     if (!searchedUser) {
       const user = await User.create(SEED_USER);
-      console.log(user);
+      // console.log(user);
     }
   } catch (e) {
     console.log(e);

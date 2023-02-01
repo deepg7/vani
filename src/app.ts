@@ -21,13 +21,7 @@ app.use("/booking", bookingRouter);
 app.use("/station", stationRouter);
 app.use("/vehicle", vehicleRouter);
 app.use("/user", userRouter);
-app.get("/", () => {
-  try {
-    throw new AuthenticationError();
-  } catch (e: any) {
-    console.log(e.statuscode + e.message);
-  }
-});
+
 const swaggerOptions = {
   swaggerDefinition: {
     info: {
@@ -36,7 +30,7 @@ const swaggerOptions = {
       description: "Vani API Visual Information",
     },
   },
-  apis: ["./src/routers/vehicle/index.ts"],
+  apis: ["./src/routers/**/*.ts"],
 };
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 app.use(

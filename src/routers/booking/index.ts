@@ -13,29 +13,24 @@ const router = Router();
 
 /**
  * @swagger
- * /booking:
- *     get:
- *         summary: Retrieve all the videos in a paginated response.[made for PART 2 of BASIC REQUIREMENTS]
+ * /booking/{vid}:
+ *     post:
+ *         summary: Create a booking. Take user phone from auth token, vehicle id from path.
  *         parameters:
- *             - in: query
- *               name: limit
- *               type: integer
- *               description: max number of tweets to return. Default is 5.
- *             - in: query
- *               name: offset
- *               type: integer
- *               description: number of tweets to offset the results by. Default is 0.
- *             - in: query
- *               name: pageNo
- *               type: integer
- *               description: can be used with limit to get a paginated response
+ *             - in: header
+ *               name: Authorization
+ *               type: string
+ *               description: Bearer + firebase access token
+ *             - in: path
+ *               name: vid
+ *               type: number
+ *               description: Vehicle Id to be booked
  *         responses:
  *             200:
- *                 description: A paginated list of videos
+ *                 description: Booking complete.
  */
 router.post("/:vid", checkUser, async (req: Request, res: Response) => {
   try {
-    //test
     const { phone } = req;
     const user = await User.findOne({ where: { phone } });
     const { vid } = req.params;
@@ -55,31 +50,41 @@ router.post("/:vid", checkUser, async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /api/getAll:
- *     get:
- *         summary: Retrieve all the videos in a paginated response.[made for PART 2 of BASIC REQUIREMENTS]
+ * /booking/{id}/{sid}:
+ *     patch:
+ *         summary: Terminate a booking. Take user phone from auth token, booking id and station id from path.
  *         parameters:
- *             - in: query
- *               name: limit
- *               type: integer
- *               description: max number of tweets to return. Default is 5.
- *             - in: query
- *               name: offset
- *               type: integer
- *               description: number of tweets to offset the results by. Default is 0.
- *             - in: query
- *               name: pageNo
- *               type: integer
- *               description: can be used with limit to get a paginated response
+ *             - in: header
+ *               name: Authorization
+ *               type: string
+ *               description: Bearer + firebase access token
+ *             - in: path
+ *               name: id
+ *               type: number
+ *               description: Booking id to be terminated
+ *             - in: path
+ *               name: sid
+ *               type: number
+ *               description: Station Id at which booking is terminated
  *         responses:
  *             200:
- *                 description: A paginated list of videos
+ *                 description: Booking is terminated
  */
 router.patch("/:id/:sid", checkUser, async (req: Request, res: Response) => {
   try {
     //add transaction
     const { id, sid } = req.params;
     if (!id || !sid) throw new NotFoundError();
+    const checkBooking = await Booking.findOne({
+      where: { id },
+      include: ["user"],
+    });
+    const { phone } = req;
+    const user = await User.findOne({ where: { phone } });
+    //@ts-ignore
+    console.log(checkBooking.user);
+    //@ts-ignore
+    if (checkBooking?.user.id != user?.id) throw new ForbiddenError();
     const booking = await Booking.update(
       { status: INACTIVE },
       { where: { id } }
@@ -88,10 +93,10 @@ router.patch("/:id/:sid", checkUser, async (req: Request, res: Response) => {
     const vehicleID = (await Booking.findByPk(id))?.VehicleId;
     if (!vehicleID) throw new NotFoundError();
     const vehicle = await Vehicle.update(
-      { stationID: Number(sid) },
+      { StationId: Number(sid) },
       { where: { id: vehicleID } }
     );
-    return res.status(201).send(booking);
+    return res.status(200).send(booking);
   } catch (e) {
     return errorHandler(e, req, res);
   }
@@ -99,37 +104,45 @@ router.patch("/:id/:sid", checkUser, async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /api/getAll:
+ * /booking:
  *     get:
- *         summary: Retrieve all the videos in a paginated response.[made for PART 2 of BASIC REQUIREMENTS]
+ *         summary: Get all active bookings. Only for admins.
  *         parameters:
- *             - in: query
- *               name: limit
- *               type: integer
- *               description: max number of tweets to return. Default is 5.
- *             - in: query
- *               name: offset
- *               type: integer
- *               description: number of tweets to offset the results by. Default is 0.
- *             - in: query
- *               name: pageNo
- *               type: integer
- *               description: can be used with limit to get a paginated response
+ *             - in: header
+ *               name: Authorization
+ *               type: string
+ *               description: Bearer + firebase access token
  *         responses:
  *             200:
- *                 description: A paginated list of videos
+ *                 description: A list of active bookings.
  */
 router.get("/", checkUser, checkRole, async (req: Request, res: Response) => {
   try {
-    //joins
-    return res
-      .status(200)
-      .send(await Booking.findAll({ include: [User, Vehicle] }));
+    return res.status(200).send(
+      await Booking.findAll({
+        include: ["user", "vehicle"],
+        where: { status: ACTIVE },
+      })
+    );
   } catch (e) {
     return errorHandler(e, req, res);
   }
 });
 
+/**
+ * @swagger
+ * /booking/user:
+ *     get:
+ *         summary: Get all active bookings for a particular user.
+ *         parameters:
+ *             - in: header
+ *               name: Authorization
+ *               type: string
+ *               description: Bearer + firebase access token
+ *         responses:
+ *             200:
+ *                 description: A list of active bookings of that user.
+ */
 router.get("/user", checkUser, async (req: Request, res: Response) => {
   try {
     const { phone } = req;
@@ -137,12 +150,13 @@ router.get("/user", checkUser, async (req: Request, res: Response) => {
     if (!user) throw new NotFoundError();
     //joins
     const bookings = await Booking.findAll({
-      where: { UserId: user.id },
-      include: [User, Vehicle],
+      where: { UserId: user.id, status: ACTIVE },
+      include: ["user", "vehicle"],
     });
     if (!bookings) throw new NotFoundError();
     return res.status(200).send(bookings);
   } catch (e) {
+    console.log(e);
     return errorHandler(e, req, res);
   }
 });

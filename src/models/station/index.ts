@@ -8,6 +8,7 @@ interface StationAttributes {
   state: string;
   city: string;
   streetAddress: string;
+  phone: string;
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date;
@@ -25,6 +26,7 @@ class Station
   public state!: string;
   public city!: string;
   public streetAddress!: string;
+  public phone!: string;
 
   // timestamps!
   public readonly createdAt!: Date;
@@ -62,11 +64,16 @@ Station.init(
         is: /[0-9]{6}/,
       },
     },
+    phone: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
   },
   {
     timestamps: true,
     sequelize: sequelize,
     paranoid: true,
+    indexes: [{ fields: ["phone"], unique: true }],
   }
 );
 
