@@ -1,7 +1,10 @@
-import { Request, Response, Router } from "express";
-import errorHandler from "../../config/utils/errorhandler";
-import Station, { StationInput } from "../../models/station";
+import { Router } from "express";
 import { checkRole, checkUser } from "../../config/firebase";
+import {
+  addStation,
+  getAllStations,
+  getStationByPincode,
+} from "../../controllers/station";
 
 const router = Router();
 
@@ -19,15 +22,7 @@ const router = Router();
  *             200:
  *                 description: A station is created.
  */
-router.post("/", checkUser, checkRole, async (req: Request, res: Response) => {
-  try {
-    const payload = req.body.payload as StationInput;
-    const station = await Station.create(payload);
-    return res.status(201).send(station);
-  } catch (e) {
-    return errorHandler(e, req, res);
-  }
-});
+router.post("/", checkUser, checkRole, addStation);
 
 /**
  * @swagger
@@ -43,14 +38,7 @@ router.post("/", checkUser, checkRole, async (req: Request, res: Response) => {
  *             200:
  *                 description: A list of stations
  */
-router.get("/", checkUser, async (req: Request, res: Response) => {
-  try {
-    const stations = await Station.findAll();
-    return res.status(200).send(stations);
-  } catch (e) {
-    return errorHandler(e, req, res);
-  }
-});
+router.get("/", checkUser, getAllStations);
 
 /**
  * @swagger
@@ -70,18 +58,6 @@ router.get("/", checkUser, async (req: Request, res: Response) => {
  *             200:
  *                 description: A list of stations having given pincode.
  */
-router.get("/:pincode", checkUser, async (req: Request, res: Response) => {
-  try {
-    const { pincode } = req.params;
-    const stations = await Station.findAll({
-      where: {
-        pincode,
-      },
-    });
-    return res.status(200).send(stations);
-  } catch (e) {
-    return errorHandler(e, req, res);
-  }
-});
+router.get("/:pincode", checkUser, getStationByPincode);
 
 export default router;

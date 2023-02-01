@@ -1,11 +1,11 @@
-import { Request, Response, Router } from "express";
-import { checkUser, checkRole } from "../../config/firebase";
-import { ADMIN } from "../../config/utils/constants";
-import errorHandler, {
-  BadRequestError,
-  NotFoundError,
-} from "../../config/utils/errorhandler";
-import User, { UserInput } from "../../models/user";
+import { Router } from "express";
+import { checkRole, checkUser } from "../../config/firebase";
+import {
+  createProfile,
+  getUserExistence,
+  getUserProfile,
+  updateUserToAdmin,
+} from "../../controllers/user";
 
 const router = Router();
 
@@ -23,18 +23,7 @@ const router = Router();
  *             201:
  *                 description: Created User is returned
  */
-router.post("/", checkUser, async (req: Request, res: Response) => {
-  try {
-    const payload = req.body.payload as UserInput;
-    console.log(req.body.payload.phone !== req.phone);
-    if (req.body.payload.phone !== req.phone) throw new BadRequestError();
-    const user = await User.create(payload);
-    return res.status(201).send(user);
-  } catch (e) {
-    console.log(e);
-    return errorHandler(e, req, res);
-  }
-});
+router.post("/", checkUser, createProfile);
 
 /**
  * @swagger
@@ -50,16 +39,7 @@ router.post("/", checkUser, async (req: Request, res: Response) => {
  *             200:
  *                 description: user profile data
  */
-router.get("/", checkUser, async (req: Request, res: Response) => {
-  try {
-    const { phone } = req;
-    const user = await User.findOne({ where: { phone } });
-    if (!user) throw new NotFoundError();
-    return res.status(200).send(user);
-  } catch (e) {
-    return errorHandler(e, req, res);
-  }
-});
+router.get("/", checkUser, getUserProfile);
 
 /**
  * @swagger
@@ -79,20 +59,7 @@ router.get("/", checkUser, async (req: Request, res: Response) => {
  *             201:
  *                 description: data=[0] means not found and data=[1] means updated.
  */
-router.patch(
-  "/:phone",
-  checkUser,
-  checkRole,
-  async (req: Request, res: Response) => {
-    try {
-      const { phone } = req.params;
-      const user = await User.update({ role: ADMIN }, { where: { phone } });
-      return res.status(201).send(user);
-    } catch (e) {
-      errorHandler(e, req, res);
-    }
-  }
-);
+router.patch("/:phone", checkUser, checkRole, updateUserToAdmin);
 
 /**
  * @swagger
@@ -108,14 +75,6 @@ router.patch(
  *             200:
  *                 description: boolean value indicating whether profile exists for entered phone number or not.
  */
-router.get("/:phone", async (req: Request, res: Response) => {
-  try {
-    const { phone } = req.params;
-    const user = await User.findOne({ where: { phone } });
-    return res.status(200).send(!!user);
-  } catch (e) {
-    errorHandler(e, req, res);
-  }
-});
+router.get("/:phone", getUserExistence);
 
 export default router;

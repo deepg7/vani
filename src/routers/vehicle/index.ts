@@ -1,12 +1,11 @@
-import { Request, Response, Router } from "express";
-import { Op } from "sequelize";
-import Booking from "../../models/booking";
-import Vehicle, { VehicleInput } from "../../models/vehicle";
-import { checkUser, checkRole } from "../../config/firebase";
-import errorHandler, { ForbiddenError } from "../../config/utils/errorhandler";
-import User from "../../models/user";
-import { ACTIVE, ADMIN } from "../../config/utils/constants";
-import Station from "../../models/station";
+import { Router } from "express";
+import { checkRole, checkUser } from "../../config/firebase";
+import {
+  addVehicle,
+  assignVehicleToStation,
+  getAllAvailableVehicles,
+  getAvailableVehiclesForStation,
+} from "../../controllers/vehicle";
 const router = Router();
 
 /**
@@ -23,15 +22,7 @@ const router = Router();
  *             200:
  *                 description: Returns created vehicle
  */
-router.post("/", checkUser, checkRole, async (req: Request, res: Response) => {
-  try {
-    const payload = req.body.payload as VehicleInput;
-    const vehicle = await Vehicle.create(payload);
-    return res.status(201).send(vehicle);
-  } catch (e) {
-    return errorHandler(e, req, res);
-  }
-});
+router.post("/", checkUser, checkRole, addVehicle);
 
 /**
  * @swagger
@@ -51,34 +42,7 @@ router.post("/", checkUser, checkRole, async (req: Request, res: Response) => {
  *             200:
  *                 description: A list of vehicles available at the given station
  */
-router.get("/:sid", checkUser, async (req: Request, res: Response) => {
-  try {
-    let { sid } = req.params;
-    const vehicles = await Vehicle.findAll({
-      where: { StationId: sid == "0" ? null : sid },
-      include: Station,
-    });
-    console.log(vehicles);
-    let avlblV: Vehicle[] = [];
-    if (sid == "0") {
-      const { phone } = req;
-      const user = await User.findOne({ where: { phone } });
-      if (!user || user.role !== ADMIN) throw new ForbiddenError();
-      avlblV = vehicles;
-    } else {
-      const vids = vehicles.map((v) => v.id);
-      const bookings = await Booking.findAll({
-        where: { VehicleId: { [Op.in]: vids }, status: "active" },
-      });
-      const bookedVIDs = bookings.map((b) => b.VehicleId);
-      avlblV = vehicles.filter((v) => !bookedVIDs.includes(v.id));
-    }
-
-    return res.send(avlblV);
-  } catch (e) {
-    return errorHandler(e, req, res);
-  }
-});
+router.get("/:sid", checkUser, getAvailableVehiclesForStation);
 
 /**
  * @swagger
@@ -86,7 +50,7 @@ router.get("/:sid", checkUser, async (req: Request, res: Response) => {
  *     get:
  *         summary: Get all available vehicles. Used for "assign vehicle to station" functionality. only for admins.
  *         parameters:
- *            - in: header
+ *             - in: header
  *               name: Authorization
  *               type: string
  *               description: Bearer + firebase Access token
@@ -94,27 +58,14 @@ router.get("/:sid", checkUser, async (req: Request, res: Response) => {
  *             200:
  *                 description: Get all available vehicles across all stations including those with stationId = 0.
  */
-router.get("/", checkUser, checkRole, async (req: Request, res: Response) => {
-  try {
-    const vehicles = await Vehicle.findAll();
-    const bookings = await Booking.findAll({ where: { status: ACTIVE } });
-    const vids = vehicles.map((v) => v.id);
-    const bookedVids = bookings.map((b) => b.VehicleId);
-    const availableVehicles = vehicles.filter(
-      (v) => !bookedVids.includes(v.id)
-    );
-    return res.status(200).send(availableVehicles);
-  } catch (e) {
-    return errorHandler(e, req, res);
-  }
-});
+router.get("/", checkUser, checkRole, getAllAvailableVehicles);
 
 /**
  * @swagger
  * /vehicle/{id}/{sid}:
  *     patch:
- *         summary:
- *         parameters: Update station id of a vehicle. Only for admins.
+ *         summary: Update station id of a vehicle. Only for admins.
+ *         parameters:
  *             - in: path
  *               name: id
  *               type: integer
@@ -127,26 +78,6 @@ router.get("/", checkUser, checkRole, async (req: Request, res: Response) => {
  *             200:
  *                 description: Station id of vehicle updated successfully if data[0]=1, if data[0]=0, vehicle not found.
  */
-router.patch(
-  "/:id/:sid",
-  checkUser,
-  checkRole,
-  async (req: Request, res: Response) => {
-    try {
-      const { id, sid } = req.params;
-      const booking = await Booking.findOne({
-        where: { status: ACTIVE, VehicleId: id },
-      });
-      if (booking) throw new ForbiddenError();
-      const vehicle = await Vehicle.update(
-        { StationId: Number(sid) == 0 ? null : Number(sid) },
-        { where: { id } }
-      );
-      return res.status(200).send(vehicle);
-    } catch (e) {
-      return errorHandler(e, req, res);
-    }
-  }
-);
+router.patch("/:id/:sid", checkUser, checkRole, assignVehicleToStation);
 
 export default router;
